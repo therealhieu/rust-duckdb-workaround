@@ -46,6 +46,12 @@ impl From<DuckDBError> for DuckDBPolarsError {
     }
 }
 
+pub fn query_to_df_polars(conn: &Connection, query: &str) -> Result<DataFrame, DuckDBPolarsError> {
+    let mut statement = conn.prepare(query)?;
+    let rbs = statement.query_arrow([])?.collect::<Vec<_>>();
+    arrowrs_record_batches_to_polars_df(rbs)
+}
+
 pub fn arrowrs_record_batches_to_polars_df(
     rbs: Vec<RecordBatch>,
 ) -> Result<DataFrame, DuckDBPolarsError> {
@@ -85,11 +91,7 @@ pub fn arrowrs_record_batches_to_polars_df(
     Ok(accumulate_dataframes_vertical_unchecked(dfs))
 }
 
-pub fn query_to_df_polars(conn: &Connection, query: &str) -> Result<DataFrame, DuckDBPolarsError> {
-    let mut statement = conn.prepare(query)?;
-    let rbs = statement.query_arrow([])?.collect::<Vec<_>>();
-    arrowrs_record_batches_to_polars_df(rbs)
-}
+
 
 #[cfg(test)]
 mod tests {

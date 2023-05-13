@@ -15,6 +15,54 @@ Because there are already existing implmentations for [arrow-rs - arrow2 convers
 To get things done, I fork [ritchier46/arrow2](https://github.com/ritchie46/arrow2) and bump dependencies relating to arrow-rs to the same version as DuckDB's arrow-rs. I made a pull request to [ritchier46/arrow2](https://github.com/ritchie46/arrow2/pull/10) and another one to [jorgecarleitao/arrow2](https://github.com/jorgecarleitao/arrow2/pull/1482). `When these two PRs are merged, we can make a PR to DuckDB to integrate this workaround`.
 
 ## DuckDB-Polars conversion
+```rust
+pub fn query_to_df_polars(conn: &Connection, query: &str) -> Result<DataFrame, DuckDBPolarsError> {
+    let mut statement = conn.prepare(query)?;
+    let rbs = statement.query_arrow([])?.collect::<Vec<_>>();
+    arrowrs_record_batches_to_polars_df(rbs)
+}
+
+pub fn arrowrs_record_batches_to_polars_df(
+    rbs: Vec<RecordBatch>,
+) -> Result<DataFrame, DuckDBPolarsError> {
+    let column_names = rbs[0]
+        .schema()
+        .fields()
+        .iter()
+        .map(|f| f.name())
+        .cloned()
+        .collect::<Vec<_>>();
+    let dfs = rbs
+        .into_par_iter()
+        .map(|rb| {
+            let s_vec = rb
+                .columns()
+                .into_par_iter()
+                .enumerate()
+                .map(|(i, array)| {
+                    let arrowrs_array_data = array.as_ref().to_data();
+                    let arrow2_array = arrow2::array::from_data(&arrowrs_array_data);
+
+                    let name = column_names
+                        .get(i)
+                        .ok_or_else(|| DuckDBPolarsError::Internal {
+                            msg: format!("Column name not found for index {}", i),
+                        })?
+                        .as_ref();
+
+                    Series::try_from((name, arrow2_array)).map_err(DuckDBPolarsError::from)
+                })
+                .collect::<Result<Vec<_>, DuckDBPolarsError>>()?;
+
+            Ok(DataFrame::new_no_checks(s_vec))
+        })
+        .collect::<Result<Vec<_>, DuckDBPolarsError>>()?;
+
+    Ok(accumulate_dataframes_vertical_unchecked(dfs))
+}
+
+
+```
 We can retrieve DuckDB query result as a [`Vec<RecordBatch>`](https://docs.rs/arrow/latest/arrow/record_batch/struct.RecordBatch.html). In eanch RecordBatch, we iterate over its columns, convert each column into [`Box<dyn arrow2::Array>`](https://docs.rs/arrow2/latest/arrow2/array/trait.Array.html) -> [polars::Series](https://docs.rs/polars/latest/polars/series/struct.Series.html), and after collecting `Vec<Series>` we get a DataFrame.
 ## Project structure
 ```
