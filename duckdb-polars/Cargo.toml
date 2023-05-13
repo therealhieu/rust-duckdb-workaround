@@ -1,0 +1,19 @@
+[package]
+name    = "duckdb-polars"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "duckdb_polars"
+
+[dependencies]
+duckdb      = { git = "https://github.com/wangfenjin/duckdb-rs", rev = "67950359860fafc539d146a46352190483304173", features = ["json"] }
+polars      = { git = "https://github.com/therealhieu/polars", branch = "feat/use-therealhieu-arrow2", features = ["dtype-full", "json"] }
+polars-core = { git = "https://github.com/therealhieu/polars", branch = "feat/use-therealhieu-arrow2" }
+
+[dev-dependencies]
+rstest     = "0.17.0"
+serde      = { version = "1.0.163", features = ["derive"] }
+serde_yaml = "0.9.21"

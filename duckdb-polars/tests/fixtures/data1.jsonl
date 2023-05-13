@@ -1,0 +1,3 @@
+{"int": 1, "str_list": ["a", "b", "c"] , "struct": {"float": 1.0, "mixed": [1, "a"]}}
+{"int": 2, "str_list": ["d", "e", "f"] , "struct": {"float": 2.0, "mixed": [2, "b"]}}
+{"int": 3, "str_list": ["g", "h", "i"] , "struct": {"float": 3.0, "mixed": [3, "c"]}}
