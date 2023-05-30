@@ -1,5 +1,8 @@
 # Rust DuckDB-Polars Workaround
+
+### Update: I implemented this feature in the PR [duckdb-rs/pull/169](https://github.com/wangfenjin/duckdb-rs/pull/169).
 ## Introduction
+
 This repository provides a solution to convert DuckDB query result to Polars DataFrame.
 
 For the one who is not familiar with Apache Arrow in Rust, DuckDB and Polars use diffrent Apache Arrow versions. While DuckDB uses [arrow-rs](https://github.com/apache/arrow-rs), Polars uses [arrow2](https://github.com/jorgecarleitao/arrow2). Difference between these two versions can be discovered more in [this](https://github.com/apache/arrow-rs/issues/1176). In brief: 
@@ -12,7 +15,7 @@ One more tricky thing worth mentioning is that Polars does not use the original 
 
 Because there are already existing implmentations for [arrow-rs - arrow2 conversion](https://github.com/jorgecarleitao/arrow2/blob/main/src/datatypes/mod.rs), most of efforts in this repository is to resolve the dependency conflicts: `ensure DuckDB's arrow-rs and arrow2's arrow-rs have the same version -> ensrue Polars uses this arrow2 version`.
 
-To get things done, I fork [ritchier46/arrow2](https://github.com/ritchie46/arrow2) and bump dependencies relating to arrow-rs to the same version as DuckDB's arrow-rs. I made a pull request to [ritchier46/arrow2](https://github.com/ritchie46/arrow2/pull/10) and another one to [jorgecarleitao/arrow2](https://github.com/jorgecarleitao/arrow2/pull/1482). `When these two PRs are merged, we can make a PR to DuckDB to integrate this workaround`.
+To get things done, I fork [ritchier46/arrow2](https://githPub.com/ritchie46/arrow2) and bump dependencies relating to arrow-rs to the same version as DuckDB's arrow-rs. I made a pull request to [ritchier46/arrow2](https://github.com/ritchie46/arrow2/pull/10) and another one to [jorgecarleitao/arrow2](https://github.com/jorgecarleitao/arrow2/pull/1482). `When these two PRs are merged, we can make a PR to DuckDB to integrate this workaround`.
 
 ## DuckDB-Polars conversion
 ```rust
